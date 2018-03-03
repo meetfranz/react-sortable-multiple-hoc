@@ -1,13 +1,14 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import {findDOMNode} from 'react-dom';
+import { findDOMNode } from 'react-dom';
 import invariant from 'invariant';
 
-import {provideDisplayName, omit} from '../utils';
+import { provideDisplayName, omit } from '../utils';
 
 let unselect = [];
 // Export Higher Order Sortable Element Component
-export default function sortableElement(WrappedComponent, config = {withRef: false}) {
+
+export default function sortableElement(WrappedComponent, config = { withRef: false }) {
   return class extends Component {
     state = {
       selected: false,
@@ -30,7 +31,7 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
 
     componentDidMount() {
       this.helperClass = this.context.manager.helperClass;
-      const {collection, disabled, index} = this.props;
+      const { collection, disabled, index } = this.props;
 
       if (!disabled) {
         this.setDraggable(collection, index);
@@ -42,7 +43,8 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
         this.node.sortableInfo.index = nextProps.index;
       }
       if (this.props.disabled !== nextProps.disabled) {
-        const {collection, disabled, index} = nextProps;
+        const { collection, disabled, index } = nextProps;
+
         if (disabled) {
           this.removeDraggable(collection);
         } else {
@@ -52,14 +54,15 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
         this.removeDraggable(this.props.collection);
         this.setDraggable(nextProps.collection, nextProps.index);
       }
-      if (!nextProps.selected){
+      if (!nextProps.selected) {
         this.unselect();
       }
     }
 
     componentWillUnmount() {
-      const {collection, disabled} = this.props;
-      unselect.splice(unselect.indexOf(this.unselect),1);
+      const { collection, disabled } = this.props;
+
+      unselect.splice(unselect.indexOf(this.unselect), 1);
       if (!disabled) this.removeDraggable(collection);
     }
 
@@ -72,7 +75,7 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
         manager: this.context.manager,
       };
 
-      this.ref = {node};
+      this.ref = { node };
       this.context.manager.add(collection, this.ref);
     }
 
@@ -85,34 +88,37 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
         config.withRef,
         'To access the wrapped instance, you need to pass in {withRef: true} as the second argument of the SortableElement() call'
       );
+
       return this.refs.wrappedInstance;
     }
 
     onSelect = (e) => {
-      if (!(e.metaKey || e.ctrlKey)){
-        unselect.forEach(func=>func());
-        unselect=[];
+      if (!(e.metaKey || e.ctrlKey)) {
+        unselect.forEach(func => func());
+        unselect = [];
       }
       this.setState({
         selected: !this.state.selected,
       });
-      if (!this.state.selected){
+      if (!this.state.selected) {
         this.context.manager.selected.push(this.node.sortableInfo.index);
         unselect.push(this.unselect);
-      }else{
+      } else {
         const selected = this.context.manager.selected;
         const index = selected.indexOf(this.node.sortableInfo);
+
         selected.splice(index, 1);
-        unselect.splice(unselect.indexOf(this.unselect),1);
+        unselect.splice(unselect.indexOf(this.unselect), 1);
       }
     }
 
-    unselect=()=>{
+    unselect=() => {
       this.setState({
         selected: false,
       });
       const selected = this.context.manager.selected;
       const index = selected.indexOf(this.node.sortableInfo);
+
       selected.splice(index, 1);
     }
 
@@ -122,28 +128,33 @@ export default function sortableElement(WrappedComponent, config = {withRef: fal
 
       };
       const item = this.props.item;
-      if (item && item.selectedItems){
-        const items =  item.selectedItems.map((value, index)=>{
-          return <WrappedComponent
-                    key={index}
-                    item={value}
-                    className={this.helperClass}
-                />;
+
+      if (item && item.selectedItems) {
+        const items = item.selectedItems.map((value, index) => {
+          return (<WrappedComponent
+            key={index}
+            item={value}
+            className={this.helperClass}
+        />);
         });
+
+
         return (
-            <div>{items}</div>
+          <div>{items}</div>
         );
       }
-      const component = <WrappedComponent
+
+      return (
+      <div style={{ position: 'relative', userSelect: 'none' }}>
+        <WrappedComponent
           ref={ref}
           className={this.state.selected ? this.helperClass : ''}
           {...omit(this.props, 'collection', 'disabled', 'index')}
           onSelect={this.onSelect}
-          {...props}/>;
-      if (this.context.manager.isMultiple){
-        return <div>{component}</div>;
-      }
-      return component;
+          {...props}
+        />
+      </div>
+      );
     }
   };
 }

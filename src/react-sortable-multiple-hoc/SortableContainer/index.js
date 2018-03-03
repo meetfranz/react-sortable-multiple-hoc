@@ -16,6 +16,7 @@ import {
 import {closestRect} from '../DragLayer/utils';
 import {arrayMove, arrayInsert} from '../index';
 
+let dragableItems = [];
 // Export Higher Order Sortable Container Component
 export default function sortableContainer(
   WrappedComponent,
@@ -35,7 +36,6 @@ export default function sortableContainer(
       };
       if (this.props.isMultiple){
         this.manager.helperClass = props.helperClass;
-        this.manager.isMultiple=true;
       }
 
       invariant(
@@ -293,8 +293,52 @@ export default function sortableContainer(
         }
       } else {
         activeNode = this.dragLayer.startDrag(this.document.body, this, e);
-        if (this.props.isMultiple) this.startMultipleDrag(activeNode);
-        this.dragLayer.createHelper(this.document.body, this);
+        if (this.props.isMultiple){
+          const index = activeNode.node.sortableInfo.index;
+          if (this.manager.selected.indexOf(index)===-1){
+            this.manager.selected.push(index);
+          }
+          const selectedItems = [];
+          dragableItems=[];
+          this.dragLayer.lists.forEach(list=>{
+            const selected = list.manager.selected;
+            if (selected.length>0){
+              const items=[];
+              for (let i=0;i<list.props.items.length;i++){
+                if (list.manager.selected.indexOf(i)!==-1){
+                  selectedItems.push(list.props.items[i]);
+                  dragableItems.push({
+                    listId:list.props.id,
+                    id:i,
+                  });
+                }else{
+                  items.push(list.props.items[i]);
+                }
+                if (list===this && i===activeNode.node.sortableInfo.index){
+                  items.push(list.props.items[i]);
+                }
+              }
+              list.setState({
+                items:items,
+              });
+              list.manager.selected = [];
+            }
+          });
+          if (selectedItems.length>0){
+            const items = this.state.items.slice();
+            const index = activeNode.node.sortableInfo.index;
+            items[index]={
+              selectedItems: selectedItems,
+            };
+            this.setState({
+              items: items,
+            });
+            this.manager.active.item = {
+              selectedItems: selectedItems,
+            };
+          }
+        }
+        this.dragLayer.cloneNode(this.document.body, this);
       }
 
       if (activeNode) {
@@ -343,45 +387,6 @@ export default function sortableContainer(
         this.dragLayer.updateDistanceBetweenContainers();
       }
     };
-
-    startMultipleDrag=(activeNode)=>{
-      const index = activeNode.node.sortableInfo.index;
-      if (this.manager.selected.indexOf(index)===-1){
-        this.manager.selected.push(index);
-      }
-      const selectedItems = [];
-      this.dragLayer.dragableItems=[];
-      this.dragLayer.lists.forEach(list=>{
-        const selected = list.manager.selected;
-        const items=[];
-        for (let i=0;i<list.props.items.length;i++){
-          if (list.manager.selected.indexOf(i)!==-1){
-            selectedItems.push(list.props.items[i]);
-            this.dragLayer.dragableItems.push({
-              listId:list.props.id,
-              id:i,
-            });
-          }else{
-            items.push(list.props.items[i]);
-          }
-          if (list===this && i===activeNode.node.sortableInfo.index){
-            items.push(list.props.items[i]);
-          }
-        }
-        list.setState({
-          items:items,
-        });
-        list.manager.selected = [];
-      });
-      const items = this.state.items.slice();
-      items[index]={
-        selectedItems: selectedItems,
-      };
-      this.setState({
-        items: items,
-      });
-      this.manager.active.item = items[index];
-    }
 
     handleSortMove = e => {
       const {onSortMove} = this.props;
@@ -461,7 +466,7 @@ export default function sortableContainer(
               {
                 newIndex: this.newIndex,
                 newListIndex: this.props.id,
-                items: this.dragLayer.dragableItems,
+                items: dragableItems,
               },
               e,
             );
@@ -715,6 +720,7 @@ export default function sortableContainer(
         if (this.axis.x) {
           if (this.axis.y) {
             // Calculations for a grid setup
+
             if (
               index < this.index &&
               (
@@ -759,10 +765,8 @@ export default function sortableContainer(
                 // If it moves passed the left bounds, then animate it to the last position of the previous row.
                 // We just use the offset of the previous node to calculate where to move, because that node's original position
                 // is exactly where we want to go
-                if (prevNode.edgeOffset){
-                  translate.x = prevNode.edgeOffset.left - edgeOffset.left;
-                  translate.y = prevNode.edgeOffset.top - edgeOffset.top;
-                }
+                translate.x = prevNode.edgeOffset.left - edgeOffset.left;
+                translate.y = prevNode.edgeOffset.top - edgeOffset.top;
               }
               this.newIndex = index;
             }
@@ -934,14 +938,10 @@ export default function sortableContainer(
     )};
       props.items=this.state.items;
       return (
-        <div style={{
-          position:'relative',
-          userSelect:'none'}}>
-            <WrappedComponent
-              ref={ref}
-              {...props}
-            />
-        </div>
+        <WrappedComponent
+          ref={ref}
+          {...props}
+        />
       );
     }
   };
