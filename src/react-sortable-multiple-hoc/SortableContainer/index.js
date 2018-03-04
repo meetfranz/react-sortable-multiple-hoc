@@ -14,7 +14,7 @@ import {
   omit,
 } from '../utils';
 import {closestRect} from '../DragLayer/utils';
-import {arrayMove, arrayInsert} from '../index';
+import {arrayMove, arrayInsert} from '../utils';
 
 let dragableItems = [];
 // Export Higher Order Sortable Container Component
