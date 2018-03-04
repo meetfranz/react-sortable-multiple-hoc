@@ -7,7 +7,7 @@ import sortableHandle from './SortableHandle';
 import { arrayInsert, arrayMove } from './utils';
 import DragLayer from './DragLayer';
 
-export default {
+export {
     SortableContainer,
     SortableElement,
     SortableHandle,
