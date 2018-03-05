@@ -114,6 +114,7 @@ export default class DragLayer {
     this.helper.style.height = `${this.height}px`;
     this.helper.style.boxSizing = 'border-box';
     this.helper.style.pointerEvents = 'none';
+    this.helper.style.zIndex = '99999999';
 
     const {
       useWindowAsScrollContainer,
