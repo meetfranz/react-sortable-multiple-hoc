@@ -115,6 +115,7 @@ export default class DragLayer {
     this.helper.style.boxSizing = 'border-box';
     this.helper.style.pointerEvents = 'none';
     this.helper.style.zIndex = '99999999';
+    // this.helper.style.zIndex = list.props.zIndex || '99999999';
 
     const {
       useWindowAsScrollContainer,
@@ -175,9 +176,11 @@ export default class DragLayer {
     }
     // Remove the helper from the DOM
     if (this.helper) {
+      // console.time('helper removal')
       this.helper.parentNode.removeChild(this.helper);
       this.helper = null;
       this.currentList.handleSortEnd(e);
+      // console.timeEnd('helper removal')
     }
   };
 
