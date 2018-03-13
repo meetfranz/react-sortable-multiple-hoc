@@ -462,7 +462,6 @@ export default function sortableContainer(
           }
         }else{
           if (typeof onMultipleSortEnd === 'function') {
-            // console.time('onMultipleSortEnd')
             onMultipleSortEnd(
               {
                 newIndex: this.newIndex,
@@ -471,7 +470,6 @@ export default function sortableContainer(
               },
               e,
             );
-            // console.timeEnd('onMultipleSortEnd')
           }
         }
       }
