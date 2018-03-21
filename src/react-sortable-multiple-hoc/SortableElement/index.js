@@ -132,6 +132,7 @@ export default function sortableElement(WrappedComponent, config = { withRef: fa
       if (item && item.selectedItems) {
         const items = item.selectedItems.map((value, index) => {
           return (<WrappedComponent
+            {...this.props}
             key={index}
             item={value}
             className={this.helperClass}
